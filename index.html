@@ -1,70 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Nextwave Dispatch Sim</title>
-  <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-    .hidden { display: none; }
-    .card { background: white; padding: 20px; margin: 10px auto; max-width: 600px; border-radius: 10px; box-shadow: 0 0 8px rgba(0,0,0,0.2);}
-    h2 { margin-top: 0; }
-    button { padding: 8px 15px; margin: 5px; cursor: pointer; }
-    input, textarea, select { width: 100%; padding: 8px; margin: 5px 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-  </style>
+<meta charset="UTF-8">
+<title>Nextwave Dispatch Sim</title>
+<style>
+  body { font-family: Arial, sans-serif; background: linear-gradient(to right,#1f1c2c,#928dab); padding: 20px; color: #fff; }
+  .hidden { display: none; }
+  .card { background: rgba(0,0,0,0.7); padding: 20px; margin: 10px auto; max-width: 600px; border-radius: 15px; box-shadow: 0 0 15px rgba(0,0,0,0.5);}
+  h2 { margin-top: 0; text-align:center; }
+  button { padding: 8px 15px; margin: 5px; cursor: pointer; border:none; border-radius:5px; background:#6c5ce7; color:#fff; font-weight:bold; }
+  button:hover{ background:#341f97; }
+  input, textarea, select { width: 100%; padding: 8px; margin: 5px 0; border-radius:5px; border:none; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; color:#fff; }
+  th, td { border: 1px solid #fff; padding: 6px; text-align: left; }
+  th { background: #341f97; }
+</style>
 </head>
 <body>
-  <div id="login" class="card">
-    <h2>Nextwave Dispatch Sim - Login</h2>
-    <input id="username" placeholder="Username">
-    <input id="password" type="password" placeholder="Password">
-    <button onclick="login()">Login</button>
-    <p id="login-msg"></p>
+<!-- Login -->
+<div id="login" class="card">
+  <h2>Nextwave Dispatch Sim - Login</h2>
+  <input id="username" placeholder="Username">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="login-msg"></p>
+</div>
+
+<!-- Admin Panel -->
+<div id="admin" class="card hidden">
+  <h2>Admin Dashboard</h2>
+  <button onclick="showSection('users')">Manage Users</button>
+  <button onclick="showSection('scenarios')">Manage Scenarios</button>
+  <button onclick="showSection('results')">View Results</button>
+  <button onclick="logout()">Logout</button>
+
+  <div id="users" class="hidden">
+    <h3>Users</h3>
+    <input id="newUser" placeholder="New Username">
+    <input id="newPass" placeholder="New Password">
+    <select id="newRole">
+      <option value="dispatcher_trainee">Dispatcher Trainee</option>
+      <option value="dispatcher_high">Dispatcher High Command</option>
+      <option value="admin">Admin</option>
+    </select>
+    <button onclick="addUser()">Add User</button>
+    <ul id="userList"></ul>
   </div>
 
-  <!-- Admin Panel -->
-  <div id="admin" class="card hidden">
-    <h2>Admin Dashboard</h2>
-    <button onclick="showSection('users')">Manage Users</button>
-    <button onclick="showSection('scenarios')">Manage Scenarios</button>
-    <button onclick="showSection('results')">View Results</button>
-    <button onclick="logout()">Logout</button>
-
-    <div id="users" class="hidden">
-      <h3>Users</h3>
-      <input id="newUser" placeholder="New Username">
-      <input id="newPass" placeholder="New Password">
-      <button onclick="addUser()">Add User</button>
-      <ul id="userList"></ul>
-    </div>
-
-    <div id="scenarios" class="hidden">
-      <h3>Scenarios</h3>
-      <textarea id="scenarioText" placeholder="Enter scenario text..."></textarea>
-      <button onclick="addScenario()">Add Scenario</button>
-      <ul id="scenarioList"></ul>
-    </div>
-
-    <div id="results" class="hidden">
-      <h3>Results</h3>
-      <table>
-        <thead><tr><th>User</th><th>Scenario</th><th>Score</th><th>Eligible</th></tr></thead>
-        <tbody id="resultsTable"></tbody>
-      </table>
-      <button onclick="exportCSV()">Export CSV</button>
-    </div>
+  <div id="scenarios" class="hidden">
+    <h3>Scenarios</h3>
+    <textarea id="scenarioText" placeholder="Enter scenario text..."></textarea>
+    <button onclick="addScenario()">Add Scenario</button>
+    <ul id="scenarioList"></ul>
   </div>
 
-  <!-- Dispatcher Panel -->
-  <div id="dispatcher" class="card hidden">
-    <h2>Dispatcher Test</h2>
-    <div id="scenarioBox"></div>
-    <textarea id="answer" placeholder="Type call notes here..."></textarea>
-    <button onclick="submitAnswer()">Submit</button>
-    <p id="dispatcherMsg"></p>
-    <button onclick="logout()">Logout</button>
+  <div id="results" class="hidden">
+    <h3>Results</h3>
+    <table>
+      <thead><tr><th>User</th><th>Scenario</th><th>Score</th><th>Eligible</th><th>Action</th></tr></thead>
+      <tbody id="resultsTable"></tbody>
+    </table>
+    <button onclick="exportCSV()">Export CSV</button>
   </div>
+</div>
+
+<!-- Dispatcher Panel -->
+<div id="dispatcher" class="card hidden">
+  <h2>Dispatcher Test</h2>
+  <div id="scenarioBox"></div>
+  <textarea id="answer" placeholder="Type call notes here..."></textarea>
+  <button onclick="submitAnswer()">Submit</button>
+  <p id="dispatcherMsg"></p>
+  <button onclick="logout()">Logout</button>
+</div>
 
 <script>
 let currentUser = null;
@@ -73,93 +81,79 @@ let scenarios = JSON.parse(localStorage.getItem("scenarios")) || [];
 let results = JSON.parse(localStorage.getItem("results")) || [];
 let currentScenario = null;
 
-function saveData(){
-  localStorage.setItem("users", JSON.stringify(users));
-  localStorage.setItem("scenarios", JSON.stringify(scenarios));
-  localStorage.setItem("results", JSON.stringify(results));
-}
+function saveData(){ localStorage.setItem("users",JSON.stringify(users)); localStorage.setItem("scenarios",JSON.stringify(scenarios)); localStorage.setItem("results",JSON.stringify(results)); }
 
 function login(){
   const u = document.getElementById("username").value;
   const p = document.getElementById("password").value;
   const user = users.find(x=>x.username===u && x.password===p);
   if(user){
-    currentUser = user;
+    currentUser=user;
     document.getElementById("login").classList.add("hidden");
-    if(user.role==="admin"){ document.getElementById("admin").classList.remove("hidden"); showUsers(); showScenarios(); showResults();}
+    if(user.role==="admin") { document.getElementById("admin").classList.remove("hidden"); showUsers(); showScenarios(); showResults();}
     else { document.getElementById("dispatcher").classList.remove("hidden"); loadScenario(); }
-  } else {
-    document.getElementById("login-msg").innerText = "Invalid login.";
-  }
+  } else { document.getElementById("login-msg").innerText="Invalid login."; }
 }
 
-function logout(){
-  currentUser = null;
-  document.getElementById("admin").classList.add("hidden");
-  document.getElementById("dispatcher").classList.add("hidden");
-  document.getElementById("login").classList.remove("hidden");
-}
+function logout(){ currentUser=null; document.getElementById("admin").classList.add("hidden"); document.getElementById("dispatcher").classList.add("hidden"); document.getElementById("login").classList.remove("hidden"); }
 
-function showSection(id){
-  ["users","scenarios","results"].forEach(sec => document.getElementById(sec).classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
+function showSection(id){ ["users","scenarios","results"].forEach(sec=>document.getElementById(sec).classList.add("hidden")); document.getElementById(id).classList.remove("hidden"); }
 
+// Users
 function addUser(){
   const u = document.getElementById("newUser").value;
   const p = document.getElementById("newPass").value;
-  if(u && p){
-    users.push({username:u,password:p,role:"dispatcher"});
-    saveData(); showUsers();
-  }
+  const r = document.getElementById("newRole").value;
+  if(u&&p){ users.push({username:u,password:p,role:r}); saveData(); showUsers(); }
 }
 function showUsers(){
   let html = "";
-  users.forEach(u=> html += `<li>${u.username} (${u.role})</li>`);
-  document.getElementById("userList").innerHTML = html;
+  users.forEach((u,i)=> html+=`<li>${u.username} (${u.role}) <button onclick="deleteUser(${i})">Delete</button></li>`);
+  document.getElementById("userList").innerHTML=html;
 }
+function deleteUser(index){ if(confirm("Delete user?")){ users.splice(index,1); saveData(); showUsers(); } }
 
+// Scenarios
 function addScenario(){
-  const txt = document.getElementById("scenarioText").value;
+  const txt=document.getElementById("scenarioText").value;
   if(txt){ scenarios.push(txt); saveData(); showScenarios(); }
 }
 function showScenarios(){
-  let html = "";
-  scenarios.forEach((s,i)=> html += `<li>${s}</li>`);
-  document.getElementById("scenarioList").innerHTML = html;
+  let html="";
+  scenarios.forEach((s,i)=>html+=`<li>${s} <button onclick="deleteScenario(${i})">Delete</button></li>`);
+  document.getElementById("scenarioList").innerHTML=html;
 }
+function deleteScenario(index){ if(confirm("Delete scenario?")){ scenarios.splice(index,1); saveData(); showScenarios(); } }
 
+// Results
 function showResults(){
-  let html = "";
-  results.forEach(r => {
-    html += `<tr><td>${r.user}</td><td>${r.scenario}</td><td>${r.score}</td><td>${r.eligible}</td></tr>`;
+  let html="";
+  results.forEach((r,i)=>{
+    html+=`<tr><td>${r.user}</td><td>${r.scenario}</td><td>${r.score}</td><td>${r.eligible}</td>`;
+    html+=`<td>${(currentUser.role==='admin')? `<button onclick="toggleEligibility(${i})">Toggle</button>`:""}</td></tr>`;
   });
-  document.getElementById("resultsTable").innerHTML = html;
+  document.getElementById("resultsTable").innerHTML=html;
 }
+function toggleEligibility(i){ results[i].eligible = results[i].eligible==="Yes"?"No":"Yes"; saveData(); showResults(); }
 
-function loadScenario(){
-  if(scenarios.length===0){ document.getElementById("scenarioBox").innerText="No scenarios available."; return; }
-  currentScenario = scenarios[Math.floor(Math.random()*scenarios.length)];
-  document.getElementById("scenarioBox").innerText = currentScenario;
-}
-
+// Dispatcher
+function loadScenario(){ if(scenarios.length===0){ document.getElementById("scenarioBox").innerText="No scenarios available."; return; } currentScenario = scenarios[Math.floor(Math.random()*scenarios.length)]; document.getElementById("scenarioBox").innerText=currentScenario; }
 function submitAnswer(){
-  const ans = document.getElementById("answer").value;
+  const ans=document.getElementById("answer").value;
   if(!ans){ alert("Enter notes."); return; }
-  const score = Math.min(100, ans.length*2); // simple scoring: longer answers = higher score
-  const eligible = score>=50 ? "Yes":"No";
+  const score=Math.min(100, ans.length*2);
+  const eligible=score>=50?"Yes":"No";
   results.push({user:currentUser.username,scenario:currentScenario,score,eligible});
   saveData(); showResults();
-  document.getElementById("dispatcherMsg").innerText = `Score: ${score} - Eligible: ${eligible}`;
+  document.getElementById("dispatcherMsg").innerText=`Score: ${score} - Eligible: ${eligible}`;
   loadScenario(); document.getElementById("answer").value="";
 }
 
+// Export
 function exportCSV(){
-  let csv = "User,Scenario,Score,Eligible\n";
-  results.forEach(r=> csv += `${r.user},${r.scenario},${r.score},${r.eligible}\n`);
-  const blob = new Blob([csv],{type:"text/csv"});
-  const a = document.createElement("a");
-  a.href=URL.createObjectURL(blob); a.download="results.csv"; a.click();
+  let csv="User,Scenario,Score,Eligible\n";
+  results.forEach(r=>csv+=`${r.user},${r.scenario},${r.score},${r.eligible}\n`);
+  const blob=new Blob([csv],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="results.csv"; a.click();
 }
 </script>
 </body>
